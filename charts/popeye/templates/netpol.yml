@@ -1,0 +1,42 @@
+---
+{{- $kubernetesEndpoint := lookup "v1" "Endpoints" "default" "kubernetes" | default (dict "subsets" (list (dict "addresses" (list (dict "ip" "1.2.3.4"))))) -}}
+{{- $kubernetesAddress := (first $kubernetesEndpoint.subsets).addresses -}}
+{{- $kubernetesIP := (first $kubernetesAddress).ip -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-k8s-api-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress: []
+  egress:
+  - to:
+    - ipBlock:
+        cidr: {{ $kubernetesIP }}/32
+    ports:
+    - protocol: TCP
+      port: 443
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: prometheus
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: prometheus
+          app.kubernetes.io/name: prometheus-pushgateway
+    ports:
+    - protocol: TCP
+      port: 9091
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53

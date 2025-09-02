@@ -1,0 +1,13 @@
+{{- if .Values.spinach.enable }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "popeye.fullname" . }}-spinach-yaml
+data:
+  spinach.yml: |-
+{{- if .Values.spinach_file }}
+{{ .Values.spinach.content | indent 4 }}
+{{- else }}
+    popeye: {}
+{{- end }}
+{{- end }}

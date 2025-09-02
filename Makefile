@@ -1,7 +1,9 @@
+GIT_TAG := 0.1.0
+
 all: lint
 
 lint:
 	helm lint charts/*
 
 tag:
-	@yq -r .version charts/kfp-pg/Chart.yaml
+	@echo $(GIT_TAG)

@@ -1,0 +1,36 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "popeye.fullname" . }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "popeye.selectorLabels" . | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "popeye.fullname" . }}
+          restartPolicy: Never
+          containers:
+            - name: {{ include "popeye.fullname" . }}
+              resources: {{- toYaml .Values.resources | nindent 16 }}
+              securityContext: {{- toYaml .Values.securityContext | nindent 16 }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              args:
+                {{- toYaml .Values.args | nindent 14 }}
+{{- if .Values.spinach.enable }}
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /usr/local/etc/spinach.yaml
+                  subPath: spinach.yaml
+
+          volumes:
+            - name: config-volume
+              configMap:
+                name: {{ include "popeye.fullname" . }}-spinach-yaml
+{{- end }}

@@ -25,17 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Requirements
-        run: |
-          pip install -qr requirements.txt -r requirements-dev.txt
-          pip freeze
-          pip check
-
       - name: Retrieve Release Candidate Name
         id: version
         run: echo "RELEASE_CANDIDATE_TAG=$( make tag )" >> $GITHUB_OUTPUT
